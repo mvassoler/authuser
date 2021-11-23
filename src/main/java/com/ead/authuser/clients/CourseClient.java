@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @Log4j2
 @Component
-public class UserClient {
+public class CourseClient {
 
     @Autowired
     RestTemplate restTemplate;
@@ -30,7 +30,7 @@ public class UserClient {
     @Autowired
     UtilsService utilsService;
 
-    @Value("${ad.api.url.course}")
+    @Value("${ead.api.url.course}")
     String REQUEST_URI;
 
     public Page<CourseDto> getAllCoursesByUser(UUID userId, Pageable pageable){

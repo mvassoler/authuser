@@ -70,4 +70,9 @@ public class UserModel extends RepresentationModel implements Serializable {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Set<UserCourseModel> userCourses;
 
+    public UserCourseModel convertToUserCourseModel(UUID courseId){
+        return new UserCourseModel(null, this, courseId);
+
+    }
+
 }
