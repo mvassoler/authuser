@@ -1,11 +1,13 @@
 package com.ead.authuser.models;
 
+import com.ead.authuser.dtos.UserEventDto;
 import com.ead.authuser.enums.UserStatus;
 import com.ead.authuser.enums.UserType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
@@ -64,5 +66,12 @@ public class UserModel extends RepresentationModel implements Serializable {
     @Column(name = "LAST_UPDATE_DATE")
     private LocalDateTime lastUpdateDate;
 
+    public UserEventDto convertUserEventDto(){
+        var userEventoDto = new UserEventDto();
+        BeanUtils.copyProperties(this, userEventoDto);
+        userEventoDto.setUserType(this.getUserType().toString());
+        userEventoDto.setUserStatus(this.getUserStatus().toString());
+        return userEventoDto;
+    }
 
 }
