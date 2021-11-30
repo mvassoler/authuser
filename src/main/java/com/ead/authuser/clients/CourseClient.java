@@ -3,6 +3,7 @@ package com.ead.authuser.clients;
 import com.ead.authuser.dtos.CourseDto;
 import com.ead.authuser.dtos.ResponsePageDto;
 import com.ead.authuser.service.UtilsService;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +35,9 @@ public class CourseClient {
     @Value("${ead.api.url.course}")
     String REQUEST_URI;
 
+    //O name do retry é o mesmo defenido no application.yaml nas configurações do Resilience4j
+    //Método fallback implementado abaixo
+    @Retry(name = "retryInstance", fallbackMethod = "retryFallBach")
     public Page<CourseDto> getAllCoursesByUser(UUID userId, Pageable pageable){
         List<CourseDto> searchResult = null;
         String url = REQUEST_URI + this.utilsService.createUrl(userId, pageable);
@@ -47,6 +52,13 @@ public class CourseClient {
             log.error("Error request /courses: {}", e);
         }
         log.info("Ending request /courses userId {}", userId);
+        return new PageImpl<>(searchResult);
+    }
+
+    //Método de fallback para falha na comunição com o microservice course
+    public Page<CourseDto> retryFallBach(UUID userId, Pageable pageable, Throwable t){
+        log.info("Inside retry retryfallback, cause - {}", t.toString());
+        List<CourseDto> searchResult = new ArrayList<>();
         return new PageImpl<>(searchResult);
     }
 
