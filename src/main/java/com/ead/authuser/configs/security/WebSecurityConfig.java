@@ -17,7 +17,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     //Define uma lista com os recursos que não necessitam de autenticação
     private static final String[] AUTH_WHITELIST = {
-            "/ead-authuser/auth/**"
+            "/auth/**"
     };
 
     @Override
