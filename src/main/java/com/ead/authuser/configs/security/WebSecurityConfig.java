@@ -10,8 +10,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true) //configura a instância global do authentication manager
@@ -29,7 +31,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             "/auth/**"
     };
 
-    @Override
+    /*@Override
     public void configure(HttpSecurity http) throws Exception {
         http.httpBasic()
                 .authenticationEntryPoint(authenticationEntryPoint)
@@ -39,8 +41,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/users/**").hasRole("STUDENT") //aplica uma permissão específica
                 .anyRequest().authenticated() //listar os endpoints com autorizações especificas ou endpoints que podem ser acessados sem autenticação
                 .and()
-                .csrf().disable(); //csrf: falsiciação de solicitação entre site é habilitado por default, mas clientes eureka não possuem token válidos
+                .csrf().disable(); //csrf: falsificação de solicitação entre site é habilitado por default, mas clientes eureka não possuem token válidos
 
+    }*/
+    public void configure(HttpSecurity http) throws Exception {
+        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) //definição da politica de sessão
+                .and()
+                .authorizeRequests()
+                .antMatchers(AUTH_WHITELIST).permitAll() //aplica a permissão total para a lista de recursos
+                .anyRequest().authenticated() //listar os endpoints com autorizações especificas ou endpoints que podem ser acessados sem autenticação
+                .and()
+                .csrf().disable(); //csrf: falsificação de solicitação entre site é habilitado por default, mas clientes eureka não possuem token válidos
+        http.addFilterBefore(authenticationJwtFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
   /*  @Override
@@ -66,6 +80,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception{
         return super.authenticationManagerBean();
+    }
+
+    @Bean
+    public AuthenticationJwtFilter authenticationJwtFilter(){
+        return new AuthenticationJwtFilter();
     }
 
 }
