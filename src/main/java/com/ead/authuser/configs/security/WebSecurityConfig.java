@@ -1,7 +1,9 @@
 package com.ead.authuser.configs.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,6 +17,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity //desliga todos as implementações default do spring security
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    AuthenticationEntryPointImpl authenticationEntryPoint;
+
     //Define uma lista com os recursos que não necessitam de autenticação
     private static final String[] AUTH_WHITELIST = {
             "/auth/**"
@@ -23,21 +31,28 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http.httpBasic()
+                .authenticationEntryPoint(authenticationEntryPoint)
                 .and()
                 .authorizeRequests()
                 .antMatchers(AUTH_WHITELIST).permitAll() //aplica a permissão total para a lista de recursos
+                .antMatchers(HttpMethod.GET, "/users/**").hasRole("STUDENT") //aplica uma permissão específica
                 .anyRequest().authenticated() //listar os endpoints com autorizações especificas ou endpoints que podem ser acessados sem autenticação
                 .and()
-                .csrf().disable() //csrf: falsiciação de solicitação entre site é habilitado por default, mas clientes eureka não possuem token válidos
-                .formLogin(); //obriga a exibição do formulário de autenticação no dashboard
+                .csrf().disable(); //csrf: falsiciação de solicitação entre site é habilitado por default, mas clientes eureka não possuem token válidos
+
     }
 
-    @Override
+  /*  @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()  //do tipo em memória
                 .withUser("admin")  //usuario
                 .password(passwordEncoder().encode("123456"))  //senha
                 .roles("ADMIN"); //regra
+    }*/
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 
     //Procede o encode da senha
