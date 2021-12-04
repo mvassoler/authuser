@@ -11,6 +11,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -40,19 +42,24 @@ public class CourseClient {
     //O name do CircuitBreaker é o mesmo defenido no application.yaml nas configurações do Resilience4j, mas no grupo circuitbreaker
     //Método fallback circuitBreakerFallBack implementado abaixo
     @CircuitBreaker(name = "circuitbreaker") //, fallbackMethod = "circuitBreakerFallBack")
-    public Page<CourseDto> getAllCoursesByUser(UUID userId, Pageable pageable){
+    public Page<CourseDto> getAllCoursesByUser(UUID userId, Pageable pageable, String token){
         List<CourseDto> searchResult = null;
         String url = REQUEST_URI + this.utilsService.createUrl(userId, pageable);
+
+        //Montando o header com o token
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        //Montando o entity que será passado ao RestTemplate
+        HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
+
         log.debug("Request URL: {}", url);
         log.info("Request URL: {}", url);
-        try {
-            ParameterizedTypeReference<ResponsePageDto<CourseDto>> responseType = new ParameterizedTypeReference<ResponsePageDto<CourseDto>>() {};
-            ResponseEntity<ResponsePageDto<CourseDto>> result = restTemplate.exchange(url, HttpMethod.GET, null, responseType);
-            searchResult = result.getBody().getContent();
-            log.debug("Response Number of Elements: {}", searchResult.size());
-        }catch (HttpStatusCodeException e){
-            log.error("Error request /courses: {}", e);
-        }
+
+        ParameterizedTypeReference<ResponsePageDto<CourseDto>> responseType = new ParameterizedTypeReference<ResponsePageDto<CourseDto>>() {};
+        ResponseEntity<ResponsePageDto<CourseDto>> result = restTemplate.exchange(url, HttpMethod.GET, entity, responseType);
+        searchResult = result.getBody().getContent();
+        log.debug("Response Number of Elements: {}", searchResult.size());
+
         log.info("Ending request /courses userId {}", userId);
         return new PageImpl<>(searchResult);
     }
