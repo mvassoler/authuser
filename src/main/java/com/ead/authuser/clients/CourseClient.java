@@ -36,10 +36,10 @@ public class CourseClient {
     @Value("${ead.api.url.course}")
     String REQUEST_URI;
 
-    //O name do retry é o mesmo defenido no application.yaml nas configurações do Resilience4j
+    //O name do retry é o mesmo defenido no application-dev.yaml nas configurações do Resilience4j
     //Método fallback retryFallBack implementado abaixo
     //@Retry(name = "retryInstance", fallbackMethod = "retryFallBack")
-    //O name do CircuitBreaker é o mesmo defenido no application.yaml nas configurações do Resilience4j, mas no grupo circuitbreaker
+    //O name do CircuitBreaker é o mesmo defenido no application-dev.yaml nas configurações do Resilience4j, mas no grupo circuitbreaker
     //Método fallback circuitBreakerFallBack implementado abaixo
     @CircuitBreaker(name = "circuitbreaker") //, fallbackMethod = "circuitBreakerFallBack")
     public Page<CourseDto> getAllCoursesByUser(UUID userId, Pageable pageable, String token){
